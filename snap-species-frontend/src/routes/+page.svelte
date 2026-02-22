@@ -152,7 +152,7 @@
 				sci: 'Panthera pardus orientalis',
 				status: 'CR',
 				threat_score: 97.3,
-				time: '2024-06-21 14:32',
+				timestamp: 1711230723420,
 				lat: 43.1,
 				lng: 131.9,
 				reporter: 'Jane Doe'

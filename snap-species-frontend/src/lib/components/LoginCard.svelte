@@ -16,7 +16,7 @@
 		}
 		loading = true;
 		try {
-			const res = await fetch('http://localhost:8000/auth/login', {
+			/*const res = await fetch('http://localhost:8000/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password })
@@ -25,13 +25,17 @@
 				error = (await res.json()).detail ?? 'Invalid credentials.';
 				return;
 			}
-			const data = await res.json();
+			const data = await res.json();*/
 
-			logIn({
-                username: data.name,
-				email,
-                token: data.access_token
-			} as User);
+			logIn(
+				{
+					//username: data.name,
+                    username: email.split('@')[0],
+					email
+				} as User,
+				//data.access_token
+                "1234567890"
+			);
 
 			goto('/map');
 		} catch {

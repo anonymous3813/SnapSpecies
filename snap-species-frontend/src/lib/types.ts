@@ -13,7 +13,6 @@ export interface Sighting {
 export interface User {
 	username: string;
 	email: string;
-	token: string;
 }
 
 export interface LeaderboardEntry {

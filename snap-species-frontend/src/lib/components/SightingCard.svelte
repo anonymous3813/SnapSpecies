@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { STATUS_CONFIG } from '$lib/constants';
 	import type { Sighting } from '$lib/types';
+    import { timestampToReadableDate } from '$lib/utils';
 
 	let { sighting, onClose, absolute = true }: { sighting: Sighting; onClose: () => void; absolute?: boolean } = $props();
 
@@ -39,7 +40,7 @@
 		</div>
 		<div class="flex items-center justify-between">
 			<span class="font-mono text-xs text-stone-400">Reported</span>
-			<span class="font-mono text-xs text-stone-600">{sighting.timestamp}</span>
+			<span class="font-mono text-xs text-stone-600">{timestampToReadableDate(sighting.timestamp)}</span>
 		</div>
 		<div class="flex items-center justify-between">
 			<span class="font-mono text-xs text-stone-400">Coordinates</span>

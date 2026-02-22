@@ -2,7 +2,7 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
-	import { isLoggedIn, logOut } from '$lib/stores/authStore.svelte';
+	import { authStore, isLoggedIn, logOut } from '$lib/stores/authStore.svelte';
 	import { goto } from '$app/navigation';
 
 	let { children } = $props();
@@ -62,7 +62,7 @@
 		{#if isLoggedIn() === true}
 			<div class="flex items-center gap-2">
 				<a
-					href="/map"
+					href={`/account/${authStore.user?.username}`}
 					class="flex items-center gap-2 rounded-lg border border-stone-200 px-3.5 py-2 text-sm text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900"
 				>
 					<svg
@@ -83,7 +83,7 @@
 				<button
 					onclick={() => {
 						logOut();
-						goto('/auth/login');
+						goto('/');
 					}}
 					class="font-mono text-sm text-stone-400 transition-colors hover:text-stone-600"
 				>
