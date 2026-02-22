@@ -4,7 +4,7 @@ const PROTECTED_ROUTES = ['/account', '/scan']; //Need to be logged in to access
 const NO_AUTH_ROUTES = ['/auth/login', '/auth/signup']; //Need to be logged out to access these routes
 
 const MOCK_USER = { username: 'jane_doe', email: 'test@example.com' };
-const LOGGED_IN = true;
+const LOGGED_IN = false;
 
 export const handle: Handle = async ({ event, resolve }) => {
   //const token = event.cookies.get('session');

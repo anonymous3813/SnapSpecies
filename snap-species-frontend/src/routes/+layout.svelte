@@ -5,6 +5,7 @@
 	import { authStore, isLoggedIn, logOut } from '$lib/stores/authStore.svelte';
 	import { goto } from '$app/navigation';
 	import { POST } from './auth/logout/+server';
+	import Logo from '$lib/components/Logo.svelte';
 
 	let { data, children } = $props();
 
@@ -24,13 +25,7 @@
 	class="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-stone-200 bg-stone-50/90 px-8 backdrop-blur-md"
 >
 	<a href="/" class="flex items-center gap-2.5">
-		<div class="flex h-7 w-7 items-center justify-center rounded-lg bg-green-900">
-			<svg width="13" height="13" viewBox="0 0 24 24" fill="white">
-				<path
-					d="M17 7c0-1.1-.9-2-2-2H9C7.9 5 7 5.9 7 7v1h10V7zm0 2H7v9h10V9zm-5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"
-				/>
-			</svg>
-		</div>
+		<Logo />
 		<span class="font-serif text-[15px] font-semibold tracking-tight text-stone-800"
 			>Snap Species</span
 		>

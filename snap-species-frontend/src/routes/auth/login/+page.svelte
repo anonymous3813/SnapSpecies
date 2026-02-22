@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Logo from '$lib/components/Logo.svelte';
 	import type { ActionData } from './$types';
 
 	let { data, form }: { data: { redirected: boolean }; form: ActionData } = $props();
@@ -17,13 +18,7 @@
 
 		<!-- Header -->
 		<div class="mb-7 flex flex-col items-center gap-3 text-center">
-			<div class="flex h-11 w-11 items-center justify-center rounded-xl bg-green-900">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-					<path
-						d="M17 7c0-1.1-.9-2-2-2H9C7.9 5 7 5.9 7 7v1h10V7zm0 2H7v9h10V9zm-5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"
-					/>
-				</svg>
-			</div>
+			<Logo />
 			<div>
 				<h2 class="font-serif text-xl font-semibold text-stone-900">Welcome back</h2>
 				<p class="mt-0.5 text-xs text-stone-400">Log in to your account</p>
