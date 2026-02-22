@@ -34,12 +34,12 @@
 			</span>
 		</div>
 		<div class="flex items-center justify-between">
-			<span class="font-mono text-xs text-stone-400">Confidence</span>
-			<span class="font-mono text-xs font-medium text-green-700">{sighting.conf}%</span>
+			<span class="font-mono text-xs text-stone-400">Threat score</span>
+			<span class="font-mono text-xs font-medium text-green-700">{sighting.threat_score}%</span>
 		</div>
 		<div class="flex items-center justify-between">
 			<span class="font-mono text-xs text-stone-400">Reported</span>
-			<span class="font-mono text-xs text-stone-600">{sighting.time}</span>
+			<span class="font-mono text-xs text-stone-600">{sighting.timestamp}</span>
 		</div>
 		<div class="flex items-center justify-between">
 			<span class="font-mono text-xs text-stone-400">Coordinates</span>

@@ -1,8 +1,9 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { STATUS_CONFIG } from '$lib/constants';
-    import { SAMPLE_SIGHTINGS } from '$lib/data';
-    import SightingCard from '$lib/components/SightingCard.svelte';
+	import { SAMPLE_SIGHTINGS } from '$lib/data';
+    import { timestampToReadableDate} from '$lib/utils';
+	import SightingCard from '$lib/components/SightingCard.svelte';
 
 	let { sightings = [], center = [20, 0], zoom = 2 } = $props();
 
@@ -109,9 +110,7 @@
 	}
 </script>
 
-<div
-	class="relative flex h-full w-full overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
->
+<div class="relative flex h-full w-full overflow-hidden bg-white">
 	<!-- Sidebar -->
 	<aside class="z-10 flex w-72 flex-shrink-0 flex-col border-r border-stone-200 bg-white">
 		<!-- Header -->
@@ -150,7 +149,7 @@
 								>{s.name}</span
 							>
 							<span class="mt-0.5 flex-shrink-0 font-mono text-xs" style="color:{cfg.color}"
-								>{s.time}</span
+								>{timestampToReadableDate(s.timestamp)}</span
 							>
 						</div>
 						<div class="mb-2 font-mono text-xs text-stone-400 italic">{s.sci}</div>
@@ -161,7 +160,7 @@
 							>
 								{s.status}
 							</span>
-							<span class="font-mono text-xs text-stone-400">{s.conf}% match</span>
+							<span class="font-mono text-xs text-stone-400">{s.threat_score}% match</span>
 						</div>
 					</button>
 				</li>
@@ -183,7 +182,7 @@
 
 	<!-- Map -->
 	<div class="relative flex-1">
-		<div bind:this={mapEl} class="h-full w-full z-0"></div>
+		<div bind:this={mapEl} class="z-0 h-full w-full"></div>
 
 		<!-- Selected species popup panel -->
 		{#if selected}
