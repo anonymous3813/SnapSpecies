@@ -49,12 +49,5 @@
 			>
 		</div>
 	</div>
-	<div class="px-4 pb-3">
-		<a
-			href="/result/{sighting.id}"
-			class="block w-full rounded-lg bg-green-900 py-2.5 text-center text-xs font-medium text-white transition-colors hover:bg-green-950"
-		>
-			View full report →
-		</a>
-	</div>
+	
 </div>
