@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { User, Sighting, LeaderboardEntry } from '$lib/types';
 
-  //Todo: Replace with real data
   const user: User = {
     username: 'jane_doe',
     email: 'jane@example.com',

@@ -109,7 +109,7 @@
 	{@render children()}
 </main>
 
-<!-- Footer - hidden on map page -->
+<!-- Footer - hidden on map page & login/signup -->
 {#if !hideFooter}
 	<footer
 		class="mx-auto flex max-w-5xl items-center justify-between border-t border-stone-200 px-8 py-7"

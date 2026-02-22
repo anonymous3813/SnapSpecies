@@ -112,7 +112,6 @@
 	</div>
 </section>
 
-<!-- DEMO + STEPS -->
 <section class="mx-auto grid max-w-5xl grid-cols-2 items-stretch gap-6 px-8 py-20">
 	<div class="relative overflow-hidden rounded-2xl">
 		<img
@@ -139,7 +138,6 @@
 		/>
 	</div>
 
-	<!-- Steps -->
 	<div>
 		<p class="mb-4 font-mono text-xs tracking-widest text-stone-400 uppercase">How it works</p>
 		{#each steps as s, i}
@@ -184,7 +182,6 @@
 
 <!-- COMMUNITY -->
 <section class="mx-auto max-w-5xl px-8 pb-20">
-	<!-- Section header -->
 	<div class="mb-12 flex items-end justify-between">
 		<div>
 			<p class="mb-3 font-mono text-xs tracking-widest text-green-700 uppercase">Community</p>
@@ -204,14 +201,12 @@
 		</a>
 	</div>
 
-	<!-- Top observers CTA -->
 	<div class="flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200">
 		<div class="flex items-center justify-between border-b border-stone-100 px-7 py-5">
 			<p class="font-mono text-xs tracking-widest text-stone-400 uppercase">Top observers</p>
 		</div>
 
 		<div class="flex flex-1 flex-col items-center justify-center gap-5 px-10 py-14 text-center">
-			<!-- Icon -->
 			<div
 				class="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 ring-1 ring-green-100"
 			>
@@ -266,7 +261,6 @@
 	</div>
 </section>
 
-<!-- CTA -->
 <section class="mx-auto max-w-5xl px-8 pb-24">
 	<div
 		class="relative grid grid-cols-2 items-center gap-16 overflow-hidden rounded-2xl bg-green-900 p-16"

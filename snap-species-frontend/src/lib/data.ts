@@ -1,5 +1,4 @@
-import type { Sighting } from './types'; // assuming your Sighting interface
-
+import type { Sighting } from './types'; 
 const now = Date.now();
 
 export const SAMPLE_SIGHTINGS: Sighting[] = [
