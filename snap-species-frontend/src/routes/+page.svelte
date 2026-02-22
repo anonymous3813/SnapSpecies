@@ -1,25 +1,10 @@
 <script>
 	import SightingCard from '$lib/components/SightingCard.svelte';
 	import mapDemo from '$lib/assets/map-demo-2.png';
-    import { SAMPLE_SIGHTINGS } from '$lib/data';
 	import { onMount } from 'svelte';
 
 	let mounted = false;
 	onMount(() => setTimeout(() => (mounted = true), 60));
-
-	const topObservers = [
-		{ name: 'Jane Doe', location: 'Primorsky, RU', score: 14_820 },
-		{ name: 'Kenji Mori', location: 'Hokkaido, JP', score: 13_405 },
-		{ name: 'Amara Osei', location: 'Accra, GH', score: 11_990 },
-		{ name: 'Lena Fischer', location: 'Bavaria, DE', score: 9_340 },
-		{ name: 'Carlos Ruiz', location: 'Patagonia, AR', score: 8_710 }
-	];
-
-	const communityStats = [
-		{ value: '12,483', label: 'Active observers' },
-		{ value: '94,201', label: 'Verified sightings' },
-		{ value: '189', label: 'Countries represented' }
-	];
 
 	const stats = [
 		{ num: '1+', label: 'Species tracked' },
@@ -28,7 +13,7 @@
 		{ num: '150/day', label: 'Species lost' }
 	];
 
-	const citations = ['IUCN Red List', 'GBIF', 'iNaturalist', 'OpenStreetMap'];
+	const citations = ['IUCN Red List', 'Animal Detect', 'OpenStreetMap'];
 
 	const steps = [
 		{
@@ -57,22 +42,22 @@
 		{
 			tag: '01',
 			title: 'AI Identification',
-			desc: "Photograph any species and get an instant ID with confidence scoring, cross-referenced against iNaturalist's 50M+ observations."
+			desc: 'Photograph any species and get an instant ID'
 		},
 		{
 			tag: '02',
 			title: 'Conservation Status',
-			desc: 'Live IUCN Red List data on every result — population trends, habitat range, and active threat factors pulled in real time.'
+			desc: 'IUCN Red List data on every result, along with population statistics and natural habitats.'
 		},
 		{
 			tag: '03',
 			title: 'Threat Scoring',
-			desc: 'A custom algorithm weighs IUCN listing, population decline, and sighting location to produce an actionable priority score.'
+			desc: 'Based on IUCN status and endangerment scoring. '
 		},
 		{
 			tag: '04',
 			title: 'Live Sighting Map',
-			desc: 'Every confirmed sighting is pinned to a shared map. Alerts fire when endangered species appear outside known ranges.'
+			desc: 'Every confirmed sighting is pinned to a shared map.'
 		}
 	];
 </script>
@@ -85,14 +70,6 @@
 	class:opacity-100={mounted}
 	class:translate-y-0={mounted}
 >
-	<!-- Live pill -->
-	<div
-		class="mb-10 inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3.5 py-1.5 font-mono text-xs text-stone-500 shadow-sm"
-	>
-		<span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-600"></span>
-		Live · 12 sightings in the last hour
-	</div>
-
 	<h1 class="mb-6 font-serif text-6xl leading-[1.07] font-semibold tracking-tight text-stone-900">
 		Wildlife intelligence<br />
 		for <span class="text-green-800 italic">everyone.</span>
@@ -227,115 +204,48 @@
 		</a>
 	</div>
 
-	<!-- Stats row -->
-	<div
-		class="mb-6 grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-stone-200 bg-stone-200"
-	>
-		{#each communityStats as stat}
-			<div class="bg-white px-8 py-7">
-				<div class="mb-1 font-serif text-3xl font-semibold text-stone-900">{stat.value}</div>
-				<div class="font-mono text-xs tracking-widest text-stone-400 uppercase">{stat.label}</div>
-			</div>
-		{/each}
-	</div>
-
-	<!-- Two-col: leaderboard preview + recent activity -->
-	<div class="grid grid-cols-2 gap-6">
-		<!-- Top observers -->
-		<div class="overflow-hidden rounded-2xl border border-stone-200">
-			<div class="flex items-center justify-between border-b border-stone-100 px-7 py-5">
-				<p class="font-mono text-xs tracking-widest text-stone-400 uppercase">Top observers</p>
-				<p class="font-mono text-xs text-green-700">This month</p>
-			</div>
-			<div class="divide-y divide-stone-100">
-				{#each topObservers as observer, i}
-					<div class="group flex items-center gap-4 px-7 py-4 transition-colors hover:bg-stone-50">
-						<!-- Rank -->
-						<span
-							class="w-5 flex-shrink-0 font-mono text-xs font-medium
-              {i === 0
-								? 'text-amber-500'
-								: i === 1
-									? 'text-stone-400'
-									: i === 2
-										? 'text-orange-400'
-										: 'text-stone-300'}"
-						>
-							{i + 1}
-						</span>
-						<!-- Avatar -->
-						<div
-							class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full font-serif text-xs font-semibold
-              {i === 0
-								? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
-								: i === 1
-									? 'bg-stone-100 text-stone-500 ring-1 ring-stone-200'
-									: i === 2
-										? 'bg-orange-50 text-orange-500 ring-1 ring-orange-100'
-										: 'bg-stone-50 text-stone-400'}"
-						>
-							{observer.name[0]}
-						</div>
-						<!-- Name + location -->
-						<div class="min-w-0 flex-1">
-							<div class="truncate font-serif text-sm font-semibold text-stone-800">
-								{observer.name}
-							</div>
-							<div class="truncate font-mono text-xs text-stone-400">{observer.location}</div>
-						</div>
-						<!-- Score -->
-						<div class="flex-shrink-0 text-right">
-							<div class="font-mono text-xs font-medium text-stone-700">
-								{observer.score.toLocaleString()}
-							</div>
-							<div class="font-mono text-xs text-stone-300">pts</div>
-						</div>
-					</div>
-				{/each}
-			</div>
+	<!-- Top observers CTA -->
+	<div class="flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200">
+		<div class="flex items-center justify-between border-b border-stone-100 px-7 py-5">
+			<p class="font-mono text-xs tracking-widest text-stone-400 uppercase">Top observers</p>
 		</div>
 
-		<!-- Recent sightings feed -->
-		<div class="overflow-hidden rounded-2xl border border-stone-200">
-			<div class="flex items-center justify-between border-b border-stone-100 px-7 py-5">
-				<p class="font-mono text-xs tracking-widest text-stone-400 uppercase">Recent sightings</p>
-				<!-- Live indicator -->
-				<div class="flex items-center gap-1.5">
-					<span class="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500"></span>
-					<span class="font-mono text-xs text-green-600">Live</span>
-				</div>
+		<div class="flex flex-1 flex-col items-center justify-center gap-5 px-10 py-14 text-center">
+			<!-- Icon -->
+			<div
+				class="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 ring-1 ring-green-100"
+			>
+				<svg
+					width="22"
+					height="22"
+					viewBox="0 0 24 24"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<rect x="3" y="12" width="4" height="9" rx="1" fill="#166534" />
+					<rect x="10" y="7" width="4" height="14" rx="1" fill="#166534" opacity="0.7" />
+					<rect x="17" y="3" width="4" height="18" rx="1" fill="#166534" opacity="0.4" />
+				</svg>
 			</div>
-			<div class="divide-y divide-stone-100">
-				{#each SAMPLE_SIGHTINGS as s}
-					<div class="flex items-start gap-4 px-7 py-4 transition-colors hover:bg-stone-50">
-						<!-- Status badge -->
-						<span
-							class="mt-0.5 flex-shrink-0 rounded px-1.5 py-0.5 font-mono text-xs font-semibold
-              {s.status === 'CR'
-								? 'bg-red-50 text-red-500'
-								: s.status === 'EN'
-									? 'bg-orange-50 text-orange-500'
-									: s.status === 'VU'
-										? 'bg-amber-50 text-amber-600'
-										: 'bg-stone-100 text-stone-400'}"
-						>
-							{s.status}
-						</span>
-						<!-- Species + meta -->
-						<div class="min-w-0 flex-1">
-							<div class="font-serif text-sm leading-snug font-semibold text-stone-800">
-								{s.name}
-							</div>
-							<div class="truncate font-mono text-xs text-stone-400 italic">{s.sci}</div>
-						</div>
-						<!-- Time + reporter -->
-						<div class="flex-shrink-0 text-right">
-							<div class="font-mono text-xs text-stone-400">{s.timestamp}</div>
-							<div class="max-w-[80px] truncate font-mono text-xs text-stone-300">{s.reporter}</div>
-						</div>
-					</div>
-				{/each}
+
+			<div>
+				<p class="font-serif text-lg leading-snug font-semibold text-stone-800">
+					Who's spotted the most?
+				</p>
+				<p class="mt-2 font-mono text-xs leading-relaxed text-stone-400">
+					See the top contributors ranked<br />by verified species sightings.
+				</p>
 			</div>
+
+			<a
+				href="/leaderboard"
+				class="mt-1 flex items-center gap-1.5 rounded-xl bg-green-900 px-5 py-2.5
+			       text-sm font-medium text-white transition-all
+			       hover:-translate-y-0.5 hover:bg-green-950 hover:shadow-lg hover:shadow-green-900/20"
+			>
+				View leaderboard
+				<span class="text-base leading-none text-green-400">→</span>
+			</a>
 		</div>
 	</div>
 </section>

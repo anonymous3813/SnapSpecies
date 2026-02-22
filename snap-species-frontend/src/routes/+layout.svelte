@@ -43,11 +43,6 @@
 			>Map</a
 		>
 		<a
-			href="/about"
-			class="rounded-md px-3.5 py-1.5 text-sm text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-800"
-			>About</a
-		>
-		<a
 			href="/leaderboard"
 			class="rounded-md px-3.5 py-1.5 text-sm text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-800"
 			>Leaderboard</a
