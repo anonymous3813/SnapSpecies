@@ -24,7 +24,7 @@
 		{
 			n: '02',
 			title: 'Identify',
-			desc: 'Claude Vision identifies the species and pulls live IUCN + GBIF data.'
+			desc: 'Using the Animal Detect API, we can identify species in your photo with high accuracy.'
 		},
 		{
 			n: '03',
