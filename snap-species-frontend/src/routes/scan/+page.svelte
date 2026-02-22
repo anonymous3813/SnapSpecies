@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { ANIMAL_STATUS} from '$lib/constants';
+	import { STATUS_CONFIG } from '$lib/constants';
+	
 
-	// ── Types ────────────────────────────────────────────────
-	type Status = 'CR' | 'EN' | 'VU' | 'NT' | 'LC';
 
 	interface ScanResult {
 		name: string;
 		sci: string;
-		status: Status;
+		status: typeof ANIMAL_STATUS[keyof typeof ANIMAL_STATUS];
 		confidence: number;
 		population: string;
 		trend: 'Increasing' | 'Stable' | 'Decreasing' | 'Unknown';
@@ -16,8 +17,8 @@
 		threats: string[];
 		nearbySightings: number;
 	}
-
-	// ── State ────────────────────────────────────────────────
+	
+	//State
 	type Phase = 'idle' | 'preview' | 'scanning' | 'result';
 
 	let phase = $state<Phase>('idle');
@@ -28,49 +29,8 @@
 	let videoEl = $state<HTMLVideoElement | null>(null);
 	let canvasEl = $state<HTMLCanvasElement | null>(null);
 	let stream = $state<MediaStream | null>(null);
-	let scanStep = $state(0); // 0-3 for animated steps during scanning
+	let scanStep = $state(0); 
 	let fileInput = $state<HTMLInputElement | null>(null);
-
-	const STATUS_CONFIG: Record<
-		Status,
-		{ label: string; color: string; bg: string; border: string; ring: string }
-	> = {
-		CR: {
-			label: 'Critically Endangered',
-			color: '#dc2626',
-			bg: '#fef2f2',
-			border: '#fca5a5',
-			ring: '#fee2e2'
-		},
-		EN: {
-			label: 'Endangered',
-			color: '#d97706',
-			bg: '#fffbeb',
-			border: '#fcd34d',
-			ring: '#fef3c7'
-		},
-		VU: {
-			label: 'Vulnerable',
-			color: '#ca8a04',
-			bg: '#fefce8',
-			border: '#fde047',
-			ring: '#fef9c3'
-		},
-		NT: {
-			label: 'Near Threatened',
-			color: '#0284c7',
-			bg: '#f0f9ff',
-			border: '#7dd3fc',
-			ring: '#e0f2fe'
-		},
-		LC: {
-			label: 'Least Concern',
-			color: '#16a34a',
-			bg: '#f0fdf4',
-			border: '#86efac',
-			ring: '#dcfce7'
-		}
-	};
 
 	const SCAN_STEPS = [
 		'Analysing image...',
@@ -79,7 +39,6 @@
 		'Running threat score algorithm...'
 	];
 
-	// ── Mock result (swap for real API call) ─────────────────
 	const MOCK_RESULT: ScanResult = {
 		name: 'Amur Leopard',
 		sci: 'Panthera pardus orientalis',
@@ -93,7 +52,7 @@
 		nearbySightings: 3
 	};
 
-	// ── File handling ─────────────────────────────────────────
+	// File handling
 	function handleFile(file: File) {
 		if (!file.type.startsWith('image/')) return;
 		const reader = new FileReader();
@@ -116,7 +75,7 @@
 		if (file) handleFile(file);
 	}
 
-	// ── Camera ────────────────────────────────────────────────
+	// Camera
 	async function startCamera() {
 		cameraMode = true;
 		phase = 'preview';
@@ -145,7 +104,7 @@
 		stream = null;
 	}
 
-	// ── Scan ──────────────────────────────────────────────────
+	// Scan
 	async function startScan() {
 		phase = 'scanning';
 		scanStep = 0;
@@ -156,7 +115,7 @@
 			await sleep(700);
 		}
 
-		// TODO: replace with real API call to your FastAPI backend
+		// TODO: replace with real API call to FastAPI backend
 		// const formData = new FormData();
 		// formData.append('image', dataUrlToBlob(imageUrl!));
 		// const res = await fetch('/api/scan', { method: 'POST', body: formData });
@@ -179,7 +138,6 @@
 		return new Promise((r) => setTimeout(r, ms));
 	}
 
-	// ── Trend helpers ─────────────────────────────────────────
 	const trendIcon = { Increasing: '↑', Stable: '→', Decreasing: '↓', Unknown: '?' };
 	const trendColor = {
 		Increasing: 'text-green-600',
@@ -203,7 +161,7 @@
 		</p>
 	</div>
 
-	<!-- ── UPLOAD ZONE (idle) ────────────────────────────────── -->
+	<!--Upload zone -->
 	{#if phase === 'idle'}
 		<div
 			role="button"
@@ -288,10 +246,9 @@
 			/>
 		</div>
 
-		<!-- ── CAMERA PREVIEW ────────────────────────────────────── -->
+		<!-- Camera preview -->
 	{:else if phase === 'preview' && cameraMode}
 		<div class="overflow-hidden rounded-2xl border border-stone-200 bg-black shadow-sm">
-			<!-- svelte-ignore a11y_media_has_caption -->
 			<video bind:this={videoEl} autoplay playsinline class="aspect-[4/3] w-full object-cover"
 			></video>
 			<canvas bind:this={canvasEl} class="hidden"></canvas>
@@ -321,7 +278,7 @@
 			</div>
 		</div>
 
-		<!-- ── IMAGE PREVIEW ─────────────────────────────────────── -->
+		<!-- Image preview -->
 	{:else if phase === 'preview' && !cameraMode}
 		<div class="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
 			<div class="relative">
@@ -361,7 +318,7 @@
 			</div>
 		</div>
 
-		<!-- ── SCANNING STATE ─────────────────────────────────────── -->
+		<!-- Scanning state -->
 	{:else if phase === 'scanning'}
 		<div class="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
 			<img src={imageUrl!} alt="Scanning" class="max-h-56 w-full object-cover opacity-60" />
@@ -440,7 +397,7 @@
 			</div>
 		</div>
 
-		<!-- ── RESULTS ────────────────────────────────────────────── -->
+		<!-- Results -->
 	{:else if phase === 'result' && result}
 		{@const cfg = STATUS_CONFIG[result.status]}
 

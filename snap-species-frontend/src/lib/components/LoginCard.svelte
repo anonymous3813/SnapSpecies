@@ -30,11 +30,10 @@
 			logIn(
 				{
 					//username: data.name,
-                    username: email.split('@')[0],
 					email
 				} as User,
 				//data.access_token
-                "1234567890"
+                'sample_token_1234567890'
 			);
 
 			goto('/map');

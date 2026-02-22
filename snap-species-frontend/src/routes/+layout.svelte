@@ -4,8 +4,9 @@
 	import { page } from '$app/state';
 	import { authStore, isLoggedIn, logOut } from '$lib/stores/authStore.svelte';
 	import { goto } from '$app/navigation';
+	import { POST } from './auth/logout/+server';
 
-	let { children } = $props();
+	let { data, children } = $props();
 
 	let hideFooter = $derived(
 		page.url.pathname === '/map' ||
@@ -59,10 +60,10 @@
 	</div>
 
 	<div class="flex w-40 flex-shrink-0 justify-end">
-		{#if isLoggedIn() === true}
+		{#if data.user}
 			<div class="flex items-center gap-2">
 				<a
-					href={`/account/${authStore.user?.username}`}
+					href={`/account`}
 					class="flex items-center gap-2 rounded-lg border border-stone-200 px-3.5 py-2 text-sm text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900"
 				>
 					<svg
@@ -80,15 +81,14 @@
 					</svg>
 					Account
 				</a>
-				<button
-					onclick={() => {
-						logOut();
-						goto('/');
-					}}
-					class="font-mono text-sm text-stone-400 transition-colors hover:text-stone-600"
-				>
-					Sign out
-				</button>
+				<form method="POST" action="/auth/logout">
+					<button
+						type="submit"
+						class="font-mono text-sm text-stone-400 transition-colors hover:text-stone-600"
+					>
+						Sign out
+					</button>
+				</form>
 			</div>
 		{:else}
 			<a

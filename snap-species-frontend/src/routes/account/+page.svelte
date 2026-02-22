@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { User, Sighting, LeaderboardEntry } from '$lib/types';
 
-  // --- Replace with your real data loading ---
+  //Todo: Replace with real data
   const user: User = {
     username: 'jane_doe',
     email: 'jane@example.com',
@@ -23,7 +23,6 @@
     { id: 5,  name: 'Saola',               sci: 'Pseudoryx nghetinhensis',     status: 'CR', lat: 17.4,  lng: 106.2, timestamp: 1718200000, threat_score: 99, reporter: 'jane_doe' },
   ];
 
-  // Derived stats
   const crCount    = sightings.filter(s => s.status === 'CR').length;
   const avgThreat  = Math.round(sightings.reduce((a, s) => a + s.threat_score, 0) / sightings.length);
   const joinedDate = new Date(entry.joined).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
