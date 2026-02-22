@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { ANIMAL_STATUS} from '$lib/constants';
+	import type { ANIMAL_STATUS } from '$lib/constants';
 	import { STATUS_CONFIG } from '$lib/constants';
-	
-
 
 	interface ScanResult {
 		name: string;
 		sci: string;
-		status: typeof ANIMAL_STATUS[keyof typeof ANIMAL_STATUS];
+		status: (typeof ANIMAL_STATUS)[keyof typeof ANIMAL_STATUS];
 		confidence: number;
 		population: string;
 		trend: 'Increasing' | 'Stable' | 'Decreasing' | 'Unknown';
@@ -17,7 +15,7 @@
 		threats: string[];
 		nearbySightings: number;
 	}
-	
+
 	//State
 	type Phase = 'idle' | 'preview' | 'scanning' | 'result';
 
@@ -29,7 +27,7 @@
 	let videoEl = $state<HTMLVideoElement | null>(null);
 	let canvasEl = $state<HTMLCanvasElement | null>(null);
 	let stream = $state<MediaStream | null>(null);
-	let scanStep = $state(0); 
+	let scanStep = $state(0);
 	let fileInput = $state<HTMLInputElement | null>(null);
 
 	const SCAN_STEPS = [
@@ -118,7 +116,7 @@
 		// TODO: replace with real API call to FastAPI backend
 		// const formData = new FormData();
 		// formData.append('image', dataUrlToBlob(imageUrl!));
-		// const res = await fetch('/api/scan', { method: 'POST', body: formData });
+		// const res = await fetch('http://localhost:8000/api/scan', { method: 'POST', body: formData });
 		// result = await res.json();
 
 		result = MOCK_RESULT;

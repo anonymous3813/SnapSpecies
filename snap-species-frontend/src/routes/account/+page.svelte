@@ -88,7 +88,7 @@
           Edit profile
         </a>
         <a
-          href="/auth/scan"
+          href="/scan"
           class="text-sm font-medium bg-green-900 text-white px-4 py-2.5 rounded-xl
                  hover:bg-green-950 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-green-900/20
                  flex items-center gap-1.5"
