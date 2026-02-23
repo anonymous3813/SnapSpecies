@@ -1,17 +1,32 @@
-import io
 import asyncio
+<<<<<<< Updated upstream
 import hashlib
 import os
 import secrets
 import time
 import httpx
 from functools import lru_cache
+=======
+import os
+>>>>>>> Stashed changes
 
-import torch
-import torchvision.transforms as T
-from torchvision.models import mobilenet_v3_large, MobileNet_V3_Large_Weights
-from PIL import Image
+# Load .env as early as possible so OPENAI_KEY etc. are available in this process
+_backend_dir = os.path.dirname(os.path.abspath(__file__))
+_env_path = os.path.join(_backend_dir, ".env")
+try:
+    from dotenv import load_dotenv
+    for path in [
+        _env_path,
+        os.path.join(os.getcwd(), ".env"),
+        os.path.join(os.getcwd(), "snap-species-backend", ".env"),
+    ]:
+        if os.path.isfile(path):
+            load_dotenv(path, override=True)
+            break
+except ImportError:
+    pass
 
+<<<<<<< Updated upstream
 from fastapi import FastAPI, File, Header, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -82,6 +97,17 @@ def _require_user(authorization: str | None) -> str:
     return email
 
 app = FastAPI()
+=======
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+
+from config import get_settings
+from database import ensure_schema, force_push_schema, get_db_conn
+from routers import auth, leaderboard, me, scan, sightings
+from schemas import AnimalResult
+
+app = FastAPI(title="SnapSpecies API", version="1.0.0")
+>>>>>>> Stashed changes
 
 app.add_middleware(
     CORSMiddleware,
@@ -91,6 +117,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+<<<<<<< Updated upstream
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -493,26 +520,107 @@ async def startup_event():
         print("Auth: PyJWT OK")
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, get_model)
+=======
+app.include_router(auth.router)
+app.include_router(scan.router)
+app.include_router(leaderboard.router)
+app.include_router(me.router)
+app.include_router(sightings.router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    # Ensure OPENAI_KEY is in os.environ (dotenv can miss it; inject from file if needed)
+    if not (os.environ.get("OPENAI_KEY") or os.environ.get("OPENAI_API_KEY")):
+        key_from_file = _read_openai_key_from_file()
+        if key_from_file:
+            os.environ["OPENAI_KEY"] = key_from_file
+    # Log whether OpenAI key is available (do not log the key)
+    try:
+        key = (get_settings().openai_api_key or "").strip()
+        print("OpenAI key:", "loaded" if key else "NOT SET (set OPENAI_KEY in .env)")
+    except Exception:
+        print("OpenAI key: NOT SET")
+    conn = await get_db_conn()
+    try:
+        if get_settings().force_push_schema:
+            await force_push_schema(conn)
+        else:
+            await ensure_schema(conn)
+    finally:
+        await conn.close()
+
+>>>>>>> Stashed changes
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
+
+def _read_openai_key_from_file() -> str:
+    """Read OPENAI_KEY from .env next to main.py (same dir as .env)."""
+    path = os.path.join(_backend_dir, ".env")
+    if not os.path.isfile(path):
+        return ""
+    try:
+        with open(path, "r", encoding="utf-8-sig") as f:
+            for line in f:
+                line = line.strip().strip("\r")
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                key = key.strip()
+                if key in ("OPENAI_KEY", "OPENAI_API_KEY") and value:
+                    return value.strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return ""
+
+
+@app.get("/api/test-openai")
+async def test_openai():
+    """Test OpenAI key and one species call. Returns key status and API result/error."""
+    from config import get_settings, get_openai_key as config_get_openai_key
+    from services.openai_species import fetch_species_info_openai
+    key_from_config = (get_settings().openai_api_key or "").strip()
+    key_from_helper = config_get_openai_key()
+    key_from_file = _read_openai_key_from_file()
+    key_used = key_from_config or key_from_helper or key_from_file
+    result = {
+        "key_from_config_len": len(key_from_config),
+        "key_from_helper_len": len(key_from_helper),
+        "key_from_file_len": len(key_from_file),
+        "env_path_checked": os.path.join(_backend_dir, ".env"),
+        "env_file_exists": os.path.isfile(os.path.join(_backend_dir, ".env")),
+        "key_used": bool(key_used),
+    }
+    if not key_used:
+        result["hint"] = "Save snap-species-backend/.env (Cmd+S) so OPENAI_KEY is on disk, then restart the server."
+        return result
+    try:
+        info = await fetch_species_info_openai("Tiger", "Panthera tigris", api_key=key_used or None)
+        result["openai_result"] = info
+        result["success"] = info.get("population") != "Unknown" or bool(info.get("description"))
+    except Exception as e:
+        result["error"] = str(e)
+        result["error_type"] = type(e).__name__
+    return result
+
+
 @app.post("/identify", response_model=AnimalResult)
 async def identify(file: UploadFile = File(...)):
     if file.content_type not in {"image/jpeg", "image/png", "image/webp"}:
         raise HTTPException(status_code=415, detail="Use JPEG, PNG, or WebP.")
-
     image_bytes = await file.read()
     if len(image_bytes) > 10 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Image must be under 10 MB.")
 
-    loop = asyncio.get_event_loop()
-    try:
-        raw_label = await loop.run_in_executor(None, run_mobilenet, image_bytes)
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=f"Could not process image: {e}")
+    from routers.scan import identify_species_from_image
+    from services.iucn import IUCN_LABELS, get_iucn_species
 
+<<<<<<< Updated upstream
     parts = [p.strip() for p in raw_label.split(",")]
     species = parts[0].title()
     scientific_name = parts[-1] if len(parts) > 1 and len(parts[-1].split()) == 2 else species
@@ -547,3 +655,10 @@ async def identify(file: UploadFile = File(...)):
         trend=trend,
         openaiQuotaExceeded=openai_quota,
     )
+=======
+    name, sci, _ = await identify_species_from_image(image_bytes)
+    iucn = await get_iucn_species(sci)
+    raw_cat = iucn.get("category", "NE") if iucn else "NE"
+    status_label = IUCN_LABELS.get(raw_cat, "Unknown")
+    return AnimalResult(species=name, endangerment=status_label)
+>>>>>>> Stashed changes

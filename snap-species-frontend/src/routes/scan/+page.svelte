@@ -9,6 +9,7 @@
 		name: string;
 		sci: string;
 		status: (typeof ANIMAL_STATUS)[keyof typeof ANIMAL_STATUS];
+		endangermentLabel: string;
 		confidence: number;
 		population: string;
 		trend: 'Increasing' | 'Stable' | 'Decreasing' | 'Unknown';
@@ -16,6 +17,7 @@
 		habitat: string;
 		threats: string[];
 		nearbySightings: number;
+		isEndangered?: boolean;
 	}
 
 	// Map backend endangerment string to status + threat score
@@ -58,6 +60,7 @@
 	let stream = $state<MediaStream | null>(null);
 	let scanStep = $state(0);
 	let fileInput = $state<HTMLInputElement | null>(null);
+	let scanError = $state<string | null>(null);
 
 	const SCAN_STEPS = [
 		'Analysing image...',
@@ -66,6 +69,24 @@
 		'Computing threat score...'
 	];
 
+<<<<<<< Updated upstream
+=======
+	const MOCK_RESULT: ScanResult = {
+		name: 'Amur Leopard',
+		sci: 'Panthera pardus orientalis',
+		status: 'CR',
+		endangermentLabel: 'Critically Endangered',
+		confidence: 97.3,
+		population: '~100 individuals',
+		trend: 'Decreasing',
+		threatScore: 72,
+		habitat: 'Temperate broadleaf & mixed forests',
+		threats: ['Habitat loss', 'Poaching', 'Prey depletion', 'Human–wildlife conflict'],
+		nearbySightings: 3,
+		isEndangered: true
+	};
+
+>>>>>>> Stashed changes
 	// File handling
 	function handleFile(file: File) {
 		if (!file.type.startsWith('image/')) return;
@@ -123,7 +144,12 @@
 		phase = 'scanning';
 		scanStep = 0;
 		scanError = null;
+<<<<<<< Updated upstream
 		openaiQuotaExceeded = false;
+=======
+		result = null;
+
+>>>>>>> Stashed changes
 		for (let i = 0; i < SCAN_STEPS.length; i++) {
 			scanStep = i;
 			await sleep(400);
@@ -167,6 +193,7 @@
 		}
 	}
 
+<<<<<<< Updated upstream
 	async function submitSightingToMap() {
 		if (!result) return;
 		submitError = null;
@@ -206,6 +233,58 @@
 		} catch {
 			submitError = 'Could not save sighting. Sign in and try again.';
 		}
+=======
+		try {
+			const blob = await (await fetch(imageUrl!)).blob();
+			const formData = new FormData();
+			formData.append('image', blob, 'image.jpg');
+			if (typeof navigator !== 'undefined' && navigator.geolocation) {
+				try {
+					const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+						navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000, maximumAge: 60000 });
+					});
+					formData.append('lat', String(pos.coords.latitude));
+					formData.append('lng', String(pos.coords.longitude));
+				} catch {
+					// continue without location
+				}
+			}
+			const headers: Record<string, string> = {};
+			const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+			if (token) headers['Authorization'] = `Bearer ${token}`;
+			const res = await fetch('http://localhost:8000/api/scan', {
+				method: 'POST',
+				body: formData,
+				headers
+			});
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				throw new Error(err.detail ?? 'Scan failed');
+			}
+			const data = await res.json();
+			result = {
+				name: data.name,
+				sci: data.sci,
+				status: data.status,
+				endangermentLabel: data.endangermentLabel ?? (data.isEndangered ? 'Endangered' : 'Not endangered'),
+				confidence: data.confidence,
+				population: data.population ?? 'Unknown',
+				trend: data.trend ?? 'Unknown',
+				threatScore: data.threatScore,
+				habitat: data.habitat ?? 'Unknown',
+				threats: Array.isArray(data.threats) ? data.threats : [],
+				nearbySightings: data.nearbySightings ?? 0,
+				isEndangered: Boolean(data.isEndangered),
+				description: data.description ?? '',
+				savedToMap: Boolean(data.savedToMap),
+				openaiQuotaExceeded: Boolean(data.openaiQuotaExceeded)
+			};
+		} catch (e) {
+			console.error(e);
+			scanError = e instanceof Error ? e.message : 'Could not reach the server. Is the backend running at http://localhost:8000?';
+		}
+		phase = 'result';
+>>>>>>> Stashed changes
 	}
 
 	function reset() {
@@ -213,8 +292,11 @@
 		imageUrl = null;
 		result = null;
 		scanError = null;
+<<<<<<< Updated upstream
 		openaiQuotaExceeded = false;
 		submitError = null;
+=======
+>>>>>>> Stashed changes
 		scanStep = 0;
 		stopCamera();
 		cameraMode = false;
@@ -497,8 +579,20 @@
 		</div>
 
 		<!-- Results -->
-	{:else if phase === 'result' && result}
-		{@const cfg = STATUS_CONFIG[result.status]}
+	{:else if phase === 'result' && scanError}
+		<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 p-6">
+			<p class="mb-2 font-mono text-sm font-medium text-red-800">Scan failed</p>
+			<p class="mb-4 text-sm text-red-700">{scanError}</p>
+			<p class="mb-4 text-xs text-red-600">Start the backend with: <code class="rounded bg-red-100 px-1 py-0.5">cd snap-species-backend && uvicorn main:app --reload --port 8000</code></p>
+			<button
+				onclick={reset}
+				class="rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+			>
+				Try again
+			</button>
+		</div>
+		{:else if phase === 'result' && result}
+		{@const cfg = result.isEndangered ? STATUS_CONFIG[result.status] : { color: '#16a34a', bg: '#f0fdf4', border: '#86efac' }}
 
 		{#if openaiQuotaExceeded}
 			<div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 font-mono text-sm text-amber-800">
@@ -528,8 +622,17 @@
 					>
 						<span class="h-1.5 w-1.5 flex-shrink-0 rounded-full" style="background:{cfg.color}"
 						></span>
-						{result.status} — {cfg.label}
+						{result.endangermentLabel}
 					</span>
+					{#if result.isEndangered}
+						<p class="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 font-mono text-xs font-medium text-red-700">
+							Endangered species — counts toward your leaderboard
+						</p>
+					{:else}
+						<p class="mt-2 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 font-mono text-xs font-medium text-green-700">
+							Not endangered (IUCN)
+						</p>
+					{/if}
 				</div>
 				<button
 					onclick={reset}
@@ -604,6 +707,21 @@
 			</div>
 		</div>
 
+		{#if result.openaiQuotaExceeded}
+			<div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+				<p class="font-mono text-xs font-medium text-amber-800">OpenAI quota exceeded</p>
+				<p class="mt-1 text-xs text-amber-700">Population, habitat, and description from OpenAI are unavailable. Add billing or wait for quota reset at <a href="https://platform.openai.com/account/billing" target="_blank" rel="noopener" class="underline">platform.openai.com</a>. IUCN data is still shown.</p>
+			</div>
+		{/if}
+
+		<!-- About / Description (from OpenAI) -->
+		{#if result.description}
+			<div class="mb-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+				<p class="mb-2 font-mono text-xs tracking-widest text-stone-400 uppercase">About</p>
+				<p class="text-sm text-stone-600">{result.description}</p>
+			</div>
+		{/if}
+
 		<!-- Habitat + Threats -->
 		<div class="mb-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
 			<p class="mb-4 font-mono text-xs tracking-widest text-stone-400 uppercase">
@@ -628,6 +746,7 @@
 
 		<!-- CTA -->
 		<div class="flex flex-col gap-3">
+<<<<<<< Updated upstream
 			{#if submitError}
 				<p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">{submitError}</p>
 			{/if}
@@ -638,6 +757,24 @@
 				>
 					📍 Submit sighting to map
 				</button>
+=======
+			{#if result.savedToMap}
+				<p class="rounded-xl border border-green-200 bg-green-50 px-4 py-2 font-mono text-xs text-green-800">
+					✓ Sighting saved to the map. View it below.
+				</p>
+			{:else}
+				<p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 font-mono text-xs text-amber-800">
+					Sign in to save this sighting to the map and see it on your account.
+				</p>
+			{/if}
+			<div class="flex gap-3">
+				<a
+					href="/map"
+					class="flex-1 rounded-xl bg-green-900 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-green-950"
+				>
+					{result.savedToMap ? 'View on map' : 'View map'}
+				</a>
+>>>>>>> Stashed changes
 				<button
 					onclick={reset}
 					class="rounded-xl border border-stone-200 px-6 py-3.5 text-sm text-stone-500 transition-colors hover:border-stone-300 hover:text-stone-700"

@@ -12,6 +12,7 @@ export interface Sighting {
 
 export interface User {
 	username: string;
+	name?: string;
 	email: string;
 }
 
@@ -20,5 +21,13 @@ export interface LeaderboardEntry {
 	name: string;
 	score: number;
 	species: number;
+	endangered_species: number;
+	avg_threat_score: number;
 	joined: string;
+}
+
+export interface UserStats {
+	endangered_species: number;
+	total_sightings: number;
+	avg_threat_score: number;
 }

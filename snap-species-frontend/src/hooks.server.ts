@@ -2,14 +2,21 @@ import { redirect, type Handle } from '@sveltejs/kit';
 
 const PROTECTED_ROUTES = ['/account', '/scan'];
 const NO_AUTH_ROUTES = ['/auth/login', '/auth/signup'];
+<<<<<<< Updated upstream
 const API = 'http://localhost:8000';
+=======
+>>>>>>> Stashed changes
 
 export const handle: Handle = async ({ event, resolve }) => {
   const token = event.cookies.get('session');
   event.locals.user = null;
   if (token) {
     try {
+<<<<<<< Updated upstream
       const res = await fetch(`${API}/api/me`, {
+=======
+      const res = await fetch('http://localhost:8000/api/me', {
+>>>>>>> Stashed changes
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

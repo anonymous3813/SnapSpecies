@@ -19,10 +19,13 @@
 		{ value: 'LC', label: 'LC' }
 	];
 
+<<<<<<< Updated upstream
 	let data = $derived(sightings);
 
+=======
+>>>>>>> Stashed changes
 	let filtered = $derived(
-		filterStatus === 'all' ? data : data.filter((s) => s.status === filterStatus)
+		filterStatus === 'all' ? sightings : sightings.filter((s) => s.status === filterStatus)
 	);
 
 	function makeIcon(status, isSelected = false) {

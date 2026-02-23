@@ -1,5 +1,12 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
-export default defineConfig({ plugins: [tailwindcss(), sveltekit()] });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
+	root: __dirname,
+	plugins: [tailwindcss(), sveltekit()],
+});

@@ -1,4 +1,5 @@
 <script lang="ts">
+<<<<<<< Updated upstream
   import type { User, Sighting } from '$lib/types';
 
   let { data } = $props();
@@ -11,6 +12,19 @@
   const crCount = $derived(sightings.filter(s => s.status === 'CR').length);
   const avgThreat = $derived(sightings.length ? Math.round(sightings.reduce((a, s) => a + s.threat_score, 0) / sightings.length) : (stats?.avg_threat_score ?? 0));
   const score = $derived(stats ? Math.round((stats.total_sightings || 0) * (stats.avg_threat_score || 0)) : 0);
+=======
+  import type { Sighting, UserStats } from '$lib/types';
+
+  let { data } = $props();
+
+  const user = $derived(data.user ?? { username: '', name: '', email: '' });
+  const stats: UserStats | null = $derived(data.stats ?? null);
+  const sightings: Sighting[] = $derived(Array.isArray(data.sightings) ? data.sightings : []);
+
+  const crCount    = $derived(sightings.filter(s => s.status === 'CR').length);
+  const avgThreat  = $derived(sightings.length ? Math.round(sightings.reduce((a, s) => a + s.threat_score, 0) / sightings.length) : (stats?.avg_threat_score ?? 0));
+  const displayName = $derived(user.name || user.email || user.username || 'Observer');
+>>>>>>> Stashed changes
 
   const STATUS_META: Record<string, { label: string; bg: string; text: string }> = {
     CR: { label: 'CR', bg: 'bg-red-50',    text: 'text-red-500'    },
@@ -31,7 +45,10 @@
     const lng = s.lng >= 0 ? `${s.lng}°E` : `${Math.abs(s.lng)}°W`;
     return `${lat}, ${lng}`;
   }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 </script>
 
 <div class="min-h-screen bg-stone-50">
@@ -40,10 +57,20 @@
     <!-- ── Profile header ── -->
     <div class="mb-12 flex items-start justify-between gap-8">
       <div class="flex items-center gap-6">
+<<<<<<< Updated upstream
         <div class="w-20 h-20 rounded-2xl bg-green-900 flex items-center justify-center shadow-lg shadow-green-900/20">
           <span class="font-serif text-3xl font-semibold text-white">
             {(displayName[0] || '?').toUpperCase()}
           </span>
+=======
+        <!-- Avatar -->
+        <div class="relative">
+          <div class="w-20 h-20 rounded-2xl bg-green-900 flex items-center justify-center shadow-lg shadow-green-900/20">
+            <span class="font-serif text-3xl font-semibold text-white">
+              {(displayName[0] || '?').toUpperCase()}
+            </span>
+          </div>
+>>>>>>> Stashed changes
         </div>
         <div>
           <p class="font-mono text-xs tracking-widest text-green-700 uppercase mb-1">Observer</p>
@@ -75,10 +102,17 @@
     <!-- ── Stats grid ── -->
     <div class="grid grid-cols-4 gap-px overflow-hidden rounded-2xl border border-stone-200 bg-stone-200 mb-8">
       {#each [
+<<<<<<< Updated upstream
         { label: 'Conservation score', value: score.toLocaleString(), sub: 'From your sightings' },
         { label: 'Total sightings', value: stats?.total_sightings ?? sightings.length, sub: `${crCount} critically endangered` },
         { label: 'Avg threat score', value: `${Math.round(stats?.avg_threat_score ?? avgThreat)}`, sub: 'Weighted by IUCN status' },
         { label: 'Species documented', value: stats?.total_sightings ?? sightings.length, sub: `${sightings.length} on map` },
+=======
+        { label: 'Total sightings', value: stats?.total_sightings ?? sightings.length, sub: `${crCount} critically endangered` },
+        { label: 'Endangered species', value: stats?.endangered_species ?? crCount, sub: 'CR / EN / VU' },
+        { label: 'Avg threat score', value: `${Math.round(stats?.avg_threat_score ?? avgThreat)}`, sub: 'Weighted by IUCN status' },
+        { label: 'Sightings on map', value: sightings.length, sub: 'With location' },
+>>>>>>> Stashed changes
       ] as stat}
         <div class="bg-white px-6 py-6">
           <p class="font-mono text-xs tracking-widest text-stone-400 uppercase mb-3">{stat.label}</p>
@@ -104,6 +138,7 @@
           {#if sightings.length === 0}
             <div class="px-7 py-10 text-center">
               <p class="font-mono text-sm text-stone-500 mb-2">No sightings yet</p>
+<<<<<<< Updated upstream
               <p class="text-xs text-stone-400 mb-4">Add a sighting from the scan page to see it here.</p>
               <a href="/scan" class="inline-flex items-center gap-1.5 rounded-xl bg-green-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-950 transition-colors">Add sighting →</a>
             </div>
@@ -141,6 +176,47 @@
               </div>
             </div>
           {/each}
+=======
+              <p class="text-xs text-stone-400 mb-4">Scan a species while signed in to save it here and on the map.</p>
+              <a href="/scan" class="inline-flex items-center gap-1.5 rounded-xl bg-green-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-950 transition-colors">
+                Add sighting →
+              </a>
+            </div>
+          {:else}
+            {#each sightings as s}
+              {@const meta = STATUS_META[s.status]}
+              <div class="flex items-center gap-4 px-7 py-4 hover:bg-stone-50 transition-colors group">
+                <!-- Status -->
+                <span class="flex-shrink-0 font-mono text-xs font-semibold px-1.5 py-0.5 rounded {meta.bg} {meta.text}">
+                  {meta.label}
+                </span>
+                <!-- Species -->
+                <div class="flex-1 min-w-0">
+                  <div class="font-serif text-sm font-semibold text-stone-800 leading-snug truncate">{s.name}</div>
+                  <div class="font-mono text-xs text-stone-400 italic truncate">{s.sci}</div>
+                </div>
+                <!-- Threat score bar -->
+                <div class="w-16 flex-shrink-0">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-mono text-xs text-stone-400">{s.threat_score}</span>
+                  </div>
+                  <div class="h-1 w-full rounded-full bg-stone-100 overflow-hidden">
+                    <div
+                      class="h-full rounded-full transition-all
+                             {s.threat_score >= 90 ? 'bg-red-400' :
+                              s.threat_score >= 70 ? 'bg-amber-400' : 'bg-green-500'}"
+                      style="width: {s.threat_score}%"
+                    ></div>
+                  </div>
+                </div>
+                <!-- Coords + date -->
+                <div class="text-right flex-shrink-0 hidden xl:block">
+                  <div class="font-mono text-xs text-stone-500">{coords(s)}</div>
+                  <div class="font-mono text-xs text-stone-300">{formatTimestamp(s.timestamp)}</div>
+                </div>
+              </div>
+            {/each}
+>>>>>>> Stashed changes
           {/if}
         </div>
       </div>
@@ -173,6 +249,10 @@
           </div>
         </div>
 
+<<<<<<< Updated upstream
+=======
+        <!-- Species breakdown -->
+>>>>>>> Stashed changes
         <div class="rounded-2xl border border-stone-200 overflow-hidden">
           <div class="px-6 py-5 border-b border-stone-100">
             <p class="font-mono text-xs tracking-widest text-stone-400 uppercase">Endangered breakdown</p>

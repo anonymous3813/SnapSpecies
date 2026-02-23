@@ -1,7 +1,23 @@
 <script lang="ts">
 	import type { LeaderboardEntry } from '$lib/types';
 
+<<<<<<< Updated upstream
 	let { data } = $props();
+=======
+	// Sample data — remove once backend is ready
+	const SAMPLE: LeaderboardEntry[] = [
+		{ rank: 1, name: 'Jane Doe', score: 9840, species: 142, endangered_species: 12, avg_threat_score: 72.5, joined: 'Jan 2024' },
+		{ rank: 2, name: 'Tariq Hassan', score: 8210, species: 118, endangered_species: 10, avg_threat_score: 68.2, joined: 'Feb 2024' },
+		{ rank: 3, name: 'Mei Lin', score: 7640, species: 97, endangered_species: 8, avg_threat_score: 65.0, joined: 'Mar 2024' },
+		{ rank: 4, name: 'Samuel Osei', score: 6310, species: 84, endangered_species: 6, avg_threat_score: 58.3, joined: 'Jan 2024' },
+		{ rank: 5, name: 'Priya Nair', score: 5490, species: 76, endangered_species: 5, avg_threat_score: 52.1, joined: 'Apr 2024' },
+		{ rank: 6, name: 'Erik Lindström', score: 4870, species: 61, endangered_species: 4, avg_threat_score: 48.0, joined: 'May 2024' },
+		{ rank: 7, name: 'Amara Diallo', score: 4120, species: 55, endangered_species: 3, avg_threat_score: 45.2, joined: 'Apr 2024' },
+		{ rank: 8, name: 'Lucas Ferreira', score: 3660, species: 48, endangered_species: 2, avg_threat_score: 42.0, joined: 'Jun 2024' },
+		{ rank: 9, name: 'Yuki Tanaka', score: 3140, species: 43, endangered_species: 2, avg_threat_score: 38.5, joined: 'May 2024' },
+		{ rank: 10, name: 'Sofia Rossi', score: 2890, species: 38, endangered_species: 1, avg_threat_score: 35.0, joined: 'Jun 2024' }
+	];
+>>>>>>> Stashed changes
 
 	const entries = $derived(Array.isArray(data?.entries) ? data.entries : []) as LeaderboardEntry[];
 	const loading = $derived(typeof data === 'undefined');
@@ -18,6 +34,31 @@
 		{ height: 'h-28', label: '1st', color: 'bg-green-900', text: 'text-white' },
 		{ height: 'h-16', label: '3rd', color: 'bg-amber-100', text: 'text-amber-700' }
 	];
+<<<<<<< Updated upstream
+=======
+
+	onMount(async () => {
+		try {
+			const res = await fetch('http://localhost:8000/api/leaderboard');
+			if (res.ok) {
+				const data = await res.json();
+				entries = Array.isArray(data)
+					? data.map((e: LeaderboardEntry) => ({
+							...e,
+							endangered_species: e.endangered_species ?? 0,
+							avg_threat_score: e.avg_threat_score ?? 0
+						}))
+					: SAMPLE;
+			} else {
+				entries = SAMPLE;
+			}
+		} catch {
+			entries = SAMPLE;
+		} finally {
+			loading = false;
+		}
+	});
+>>>>>>> Stashed changes
 </script>
 
 <div class="mx-auto max-w-3xl px-8 py-14">
@@ -37,8 +78,7 @@
 					Leaderboard
 				</h1>
 				<p class="max-w-xs text-sm leading-relaxed text-stone-500">
-					Ranked by conservation score — weighted by species threat level, sighting rarity, and
-					habitat distance.
+					Ranked by number of endangered species found and average endangerment score.
 				</p>
 			</div>
 			<a
@@ -78,7 +118,7 @@
 							{entry.name}
 						</div>
 						<div class="mt-0.5 font-mono text-xs text-stone-400">
-							{entry.score.toLocaleString()} pts
+							{entry.endangered_species} endangered · avg {entry.avg_threat_score}
 						</div>
 					</div>
 					<!-- Podium block -->
@@ -129,9 +169,10 @@
 						<span class="ml-1 font-mono text-xs text-stone-400">pts</span>
 					</div>
 
-					<!-- Species count -->
-					<div class="w-20 flex-shrink-0 text-right">
-						<span class="font-mono text-xs text-stone-400">{entry.species} species</span>
+					<!-- Endangered + avg score -->
+					<div class="w-28 flex-shrink-0 text-right">
+						<span class="font-mono text-xs text-red-600">{entry.endangered_species} endangered</span>
+						<span class="block font-mono text-xs text-stone-400">avg {entry.avg_threat_score}</span>
 					</div>
 				</div>
 			{/each}
@@ -141,10 +182,9 @@
 		<div class="mt-6 rounded-xl border border-stone-200 bg-stone-50 px-5 py-4">
 			<p class="mb-2 font-mono text-xs tracking-widest text-stone-400 uppercase">How scores work</p>
 			<p class="text-xs leading-relaxed text-stone-500">
-				Conservation scores are computed by the backend and weight each sighting by the species'
-				IUCN threat level, how far the sighting is from the known habitat range, and the rarity of
-				the species in the GBIF occurrence database. Critically Endangered sightings score
-				significantly higher than Least Concern ones.
+				Ranking is by number of distinct endangered species (CR, EN, VU) you have found, then by
+				average endangerment score across all your sightings. Finding an endangered species
+				increases your count and updates your leaderboard position.
 			</p>
 		</div>
 	{/if}

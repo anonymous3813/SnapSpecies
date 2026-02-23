@@ -16,26 +16,20 @@
 		}
 		loading = true;
 		try {
-			/*const res = await fetch('http://localhost:8000/auth/login', {
+			const res = await fetch('http://localhost:8000/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password })
 			});
 			if (!res.ok) {
-				error = (await res.json()).detail ?? 'Invalid credentials.';
+				const body = await res.json().catch(() => ({}));
+				error = body.detail ?? 'Invalid credentials.';
 				return;
 			}
-			const data = await res.json();*/
-
-			logIn(
-				{
-					//username: data.name,
-					email
-				} as User,
-				//data.access_token
-                'sample_token_1234567890'
-			);
-
+			const data = await res.json();
+			const token = data.access_token;
+			if (typeof localStorage !== 'undefined') localStorage.setItem('token', token);
+			logIn({ username: email, email } as User, token);
 			goto('/map');
 		} catch {
 			error = 'Could not reach the server.';

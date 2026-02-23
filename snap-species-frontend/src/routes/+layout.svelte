@@ -2,10 +2,15 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
+<<<<<<< Updated upstream
 	import { authStore, isLoggedIn, logOut } from '$lib/stores/authStore.svelte';
 	import { goto } from '$app/navigation';
 	import { POST } from './auth/logout/+server';
 	import Logo from '$lib/components/Logo.svelte';
+=======
+	import { authStore, logOut } from '$lib/stores/authStore.svelte';
+	import { onMount } from 'svelte';
+>>>>>>> Stashed changes
 
 	let { data, children } = $props();
 
@@ -14,6 +19,20 @@
 			page.url.pathname === '/auth/signup' ||
 			page.url.pathname === '/auth/login'
 	);
+
+	onMount(() => {
+		const match = typeof document !== 'undefined' && document.cookie.match(/session=([^;]+)/);
+		if (match) {
+			if (typeof localStorage !== 'undefined') localStorage.setItem('token', match[1]);
+			if (data.user && !authStore.user) {
+				authStore.user = { username: data.user.email, name: data.user.name, email: data.user.email };
+				authStore.token = match[1];
+			}
+		} else {
+			if (typeof localStorage !== 'undefined') localStorage.removeItem('token');
+			logOut();
+		}
+	});
 </script>
 
 <svelte:head>
