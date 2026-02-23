@@ -1,24 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-    import type { LeaderboardEntry } from '$lib/types';
+	import type { LeaderboardEntry } from '$lib/types';
 
-	// Sample data — remove once backend is ready
-	const SAMPLE: LeaderboardEntry[] = [
-		{ rank: 1, name: 'Jane Doe', score: 9840, species: 142, joined: 'Jan 2024' },
-		{ rank: 2, name: 'Tariq Hassan', score: 8210, species: 118, joined: 'Feb 2024' },
-		{ rank: 3, name: 'Mei Lin', score: 7640, species: 97, joined: 'Mar 2024' },
-		{ rank: 4, name: 'Samuel Osei', score: 6310, species: 84, joined: 'Jan 2024' },
-		{ rank: 5, name: 'Priya Nair', score: 5490, species: 76, joined: 'Apr 2024' },
-		{ rank: 6, name: 'Erik Lindström', score: 4870, species: 61, joined: 'May 2024' },
-		{ rank: 7, name: 'Amara Diallo', score: 4120, species: 55, joined: 'Apr 2024' },
-		{ rank: 8, name: 'Lucas Ferreira', score: 3660, species: 48, joined: 'Jun 2024' },
-		{ rank: 9, name: 'Yuki Tanaka', score: 3140, species: 43, joined: 'May 2024' },
-		{ rank: 10, name: 'Sofia Rossi', score: 2890, species: 38, joined: 'Jun 2024' }
-	];
+	let { data } = $props();
 
-	let entries = $state<LeaderboardEntry[]>([]);
-	let loading = $state(true);
-	let error = $state('');
+	const entries = $derived(Array.isArray(data?.entries) ? data.entries : []) as LeaderboardEntry[];
+	const loading = $derived(typeof data === 'undefined');
+	const error = $derived((data?.error as string) ?? '');
 
 	const topScore = $derived(entries[0]?.score ?? 1);
 
@@ -31,17 +18,6 @@
 		{ height: 'h-28', label: '1st', color: 'bg-green-900', text: 'text-white' },
 		{ height: 'h-16', label: '3rd', color: 'bg-amber-100', text: 'text-amber-700' }
 	];
-
-	onMount(async () => {
-		try {
-			await new Promise((r) => setTimeout(r, 700));
-			entries = SAMPLE;
-		} catch {
-			error = 'Could not load leaderboard.';
-		} finally {
-			loading = false;
-		}
-	});
 </script>
 
 <div class="mx-auto max-w-3xl px-8 py-14">

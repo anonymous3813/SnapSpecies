@@ -1,8 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { STATUS_CONFIG } from '$lib/constants';
-	import { SAMPLE_SIGHTINGS } from '$lib/data';
-    import { timestampToReadableDate} from '$lib/utils';
+	import { timestampToReadableDate } from '$lib/utils';
 	import SightingCard from '$lib/components/SightingCard.svelte';
 
 	let { sightings = [], center = [20, 0], zoom = 2 } = $props();
@@ -20,7 +19,7 @@
 		{ value: 'LC', label: 'LC' }
 	];
 
-	let data = $derived(sightings.length ? sightings : SAMPLE_SIGHTINGS);
+	let data = $derived(sightings);
 
 	let filtered = $derived(
 		filterStatus === 'all' ? data : data.filter((s) => s.status === filterStatus)

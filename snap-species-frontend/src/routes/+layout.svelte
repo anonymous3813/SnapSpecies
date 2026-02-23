@@ -105,7 +105,7 @@
 </nav>
 
 <!-- Main content -->
-<main class="overflow-hidden' : 'pt-14'} pt-14">
+<main class="overflow-hidden pt-14">
 	{@render children()}
 </main>
 

@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import type { ANIMAL_STATUS } from '$lib/constants';
 	import { STATUS_CONFIG } from '$lib/constants';
+
+	const API = 'http://localhost:8000';
 
 	interface ScanResult {
 		name: string;
@@ -16,12 +18,39 @@
 		nearbySightings: number;
 	}
 
+	// Map backend endangerment string to status + threat score
+	const ENDANGERMENT_MAP: Record<string, { status: keyof typeof ANIMAL_STATUS; threatScore: number }> = {
+		'Critically Endangered': { status: 'CR', threatScore: 95 },
+		'Endangered': { status: 'EN', threatScore: 80 },
+		'Vulnerable': { status: 'VU', threatScore: 65 },
+		'Near Threatened': { status: 'NT', threatScore: 40 },
+		'Least Concern': { status: 'LC', threatScore: 20 },
+		'Data Deficient': { status: 'LC', threatScore: 30 },
+		'Not Evaluated': { status: 'LC', threatScore: 20 }
+	};
+	function mapEndangerment(endangerment: string): { status: keyof typeof ANIMAL_STATUS; threatScore: number } {
+		const key = (endangerment || '').trim();
+		return ENDANGERMENT_MAP[key] ?? { status: 'LC', threatScore: 20 };
+	}
+
+	function dataUrlToBlob(dataUrl: string): Blob {
+		const [head, data] = dataUrl.split(',');
+		const mime = head?.match(/data:([^;]+)/)?.[1] ?? 'image/jpeg';
+		const bin = atob(data || '');
+		const arr = new Uint8Array(bin.length);
+		for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+		return new Blob([arr], { type: mime });
+	}
+
 	//State
 	type Phase = 'idle' | 'preview' | 'scanning' | 'result';
 
 	let phase = $state<Phase>('idle');
 	let imageUrl = $state<string | null>(null);
 	let result = $state<ScanResult | null>(null);
+	let scanError = $state<string | null>(null);
+	let openaiQuotaExceeded = $state(false);
+	let submitError = $state<string | null>(null);
 	let dragOver = $state(false);
 	let cameraMode = $state(false);
 	let videoEl = $state<HTMLVideoElement | null>(null);
@@ -33,22 +62,9 @@
 	const SCAN_STEPS = [
 		'Analysing image...',
 		'Querying IUCN Red List...',
-		'Fetching GBIF occurrence data...',
-		'Running threat score algorithm...'
+		'Fetching occurrence data...',
+		'Computing threat score...'
 	];
-
-	const MOCK_RESULT: ScanResult = {
-		name: 'Amur Leopard',
-		sci: 'Panthera pardus orientalis',
-		status: 'CR',
-		confidence: 97.3,
-		population: '~100 individuals',
-		trend: 'Decreasing',
-		threatScore: 72,
-		habitat: 'Temperate broadleaf & mixed forests',
-		threats: ['Habitat loss', 'Poaching', 'Prey depletion', 'Human–wildlife conflict'],
-		nearbySightings: 3
-	};
 
 	// File handling
 	function handleFile(file: File) {
@@ -106,27 +122,99 @@
 	async function startScan() {
 		phase = 'scanning';
 		scanStep = 0;
-
-		// Step through pipeline labels
+		scanError = null;
+		openaiQuotaExceeded = false;
 		for (let i = 0; i < SCAN_STEPS.length; i++) {
 			scanStep = i;
-			await sleep(700);
+			await sleep(400);
 		}
+		try {
+			const formData = new FormData();
+			const blob = dataUrlToBlob(imageUrl!);
+			formData.append('file', blob, 'image.jpg');
+			const res = await fetch(`${API}/identify`, { method: 'POST', body: formData });
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				throw new Error(err.detail ?? 'Identification failed');
+			}
+			const data = await res.json();
+			const { status, threatScore: fallbackScore } = mapEndangerment(data.endangerment ?? '');
+			const threatScore =
+				typeof data.threat_score === 'number' && data.threat_score >= 0 && data.threat_score <= 100
+					? data.threat_score
+					: fallbackScore;
+			const rawTrend = (data.trend ?? '').trim();
+			const trend = ['Increasing', 'Stable', 'Decreasing', 'Unknown'].includes(rawTrend)
+				? rawTrend
+				: 'Unknown';
+			result = {
+				name: data.species ?? 'Unknown',
+				sci: data.sci ?? data.species ?? 'Unknown',
+				status,
+				confidence: 0,
+				population: data.population ?? 'Unknown',
+				trend: trend as 'Increasing' | 'Stable' | 'Decreasing' | 'Unknown',
+				threatScore,
+				habitat: data.habitat ?? 'Unknown',
+				threats: Array.isArray(data.threats) ? data.threats : [],
+				nearbySightings: 0
+			};
+			if (data.openaiQuotaExceeded) openaiQuotaExceeded = true;
+			phase = 'result';
+		} catch (e) {
+			scanError = e instanceof Error ? e.message : 'Scan failed';
+			phase = 'result';
+		}
+	}
 
-		// TODO: replace with real API call to FastAPI backend
-		// const formData = new FormData();
-		// formData.append('image', dataUrlToBlob(imageUrl!));
-		// const res = await fetch('http://localhost:8000/api/scan', { method: 'POST', body: formData });
-		// result = await res.json();
-
-		result = MOCK_RESULT;
-		phase = 'result';
+	async function submitSightingToMap() {
+		if (!result) return;
+		submitError = null;
+		let lat = 0;
+		let lng = 0;
+		if (typeof navigator !== 'undefined' && navigator.geolocation) {
+			try {
+				const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+					navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 60000 });
+				});
+				lat = pos.coords.latitude;
+				lng = pos.coords.longitude;
+			} catch {
+				// use 0,0
+			}
+		}
+		try {
+			const res = await fetch('/scan/submit-sighting', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify({
+					name: result.name,
+					sci: result.sci,
+					status: result.status,
+					lat,
+					lng,
+					threat_score: result.threatScore
+				})
+			});
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				submitError = err.error ?? 'Could not save sighting. Sign in and try again.';
+				return;
+			}
+			goto('/map');
+		} catch {
+			submitError = 'Could not save sighting. Sign in and try again.';
+		}
 	}
 
 	function reset() {
 		phase = 'idle';
 		imageUrl = null;
 		result = null;
+		scanError = null;
+		openaiQuotaExceeded = false;
+		submitError = null;
 		scanStep = 0;
 		stopCamera();
 		cameraMode = false;
@@ -395,9 +483,28 @@
 			</div>
 		</div>
 
+		<!-- Result: scan error -->
+	{:else if phase === 'result' && scanError}
+		<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 p-6">
+			<p class="mb-2 font-mono text-sm font-medium text-red-800">Scan failed</p>
+			<p class="mb-4 text-sm text-red-700">{scanError}</p>
+			<button
+				onclick={reset}
+				class="rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+			>
+				Try again
+			</button>
+		</div>
+
 		<!-- Results -->
 	{:else if phase === 'result' && result}
 		{@const cfg = STATUS_CONFIG[result.status]}
+
+		{#if openaiQuotaExceeded}
+			<div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 font-mono text-sm text-amber-800">
+				OpenAI quota exceeded. Population, habitat, and threats may show as Unknown.
+			</div>
+		{/if}
 
 		<!-- Photo + identity -->
 		<div class="mb-4 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
@@ -520,19 +627,24 @@
 		</div>
 
 		<!-- CTA -->
-		<div class="flex gap-3">
-			<a
-				href="/map"
-				class="flex-1 rounded-xl bg-green-900 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-green-950"
-			>
-				📍 Submit sighting to map
-			</a>
-			<button
-				onclick={reset}
-				class="rounded-xl border border-stone-200 px-6 py-3.5 text-sm text-stone-500 transition-colors hover:border-stone-300 hover:text-stone-700"
-			>
-				Scan another
-			</button>
+		<div class="flex flex-col gap-3">
+			{#if submitError}
+				<p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">{submitError}</p>
+			{/if}
+			<div class="flex gap-3">
+				<button
+					onclick={submitSightingToMap}
+					class="flex-1 rounded-xl bg-green-900 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-green-950"
+				>
+					📍 Submit sighting to map
+				</button>
+				<button
+					onclick={reset}
+					class="rounded-xl border border-stone-200 px-6 py-3.5 text-sm text-stone-500 transition-colors hover:border-stone-300 hover:text-stone-700"
+				>
+					Scan another
+				</button>
+			</div>
 		</div>
 	{/if}
 </div>
